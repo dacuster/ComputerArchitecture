@@ -9,70 +9,62 @@ ExitProcess PROTO, dwExitCode:DWORD					; Create the exit process definition.
 
 .DATA												; Begin global static variables
 ; Test pins
-;pinArray DWORD 1, 2, 3, 4
-;pinArray DWORD 1, 2, 3, 4
-;pinArray DWORD 1, 2, 3, 4
-;pinArray DWORD 1, 2, 3, 4
-;pinArray DWORD 1, 2, 3, 4
-pinArray BYTE 1, 2, 3, 4
+; Test range of each digit.
+;pinArray DWORD 1, 2, 8, 4							; Low  first  pin
+;pinArray DWORD 8, 2, 8, 4							; High first  pin
+;pinArray DWORD 5, 0, 8, 4							; Low  second pin
+;pinArray DWORD 5, 6, 8, 4							; High second pin
+;pinArray DWORD 5, 2, 3, 4							; Low  third  pin
+;pinArray DWORD 5, 2, 10, 4							; High third  pin
+;pinArray DWORD 5, 2, 8, 1							; Low  fourth pin
+;pinArray DWORD 5, 2, 8, 9							; High fourth pin
 
-; Valid minimums for each pin.
-validPinMinArray BYTE 3, 1, 7, 2
-; Valid maximums for each pin.
-validPinMaxArray BYTE 6, 4, 9, 5
+; Test signed values.
+;pinArray DWORD -5, 2, 8, 9							; Signed first  pin
+;pinArray DWORD 5, -2, 8, 9							; Signed second pin
+;pinArray DWORD 5, 2, -8, 9							; Signed third  pin
+;pinArray DWORD 5, 2, 8, -9							; Signed fourth pin
 
+; Test exact low and high range value pins.
+;pinArray DWORD 3, 1, 7, 2							; Exact lower  pin range.
+;pinArray DWORD 6, 4, 9, 5							; Exact higher pin range.
 
+; Some valid pins.
+pinArray DWORD 4, 2, 8, 3							; Random valid pin
+;pinArray DWORD 4, 3, 8, 4							; Random valid pin
+;pinArray DWORD 5, 2, 9, 2							; Random valid pin
 
-
-arrayEarnedGrade DWORD 25, 89, 49, 80				; Initialized array of earned grades.
-earnedArrayLength EQU ($ - arrayEarnedGrade)		; Calculate the length of the earned grades array.
-arrayPossibleGrade DWORD 30, 100, 50, 150			; Initialized array of possible grades.
-possibleArrayLength EQU ($ - arrayPossibleGrade)	; Calculate the length of the possible grades array.
-sumEarned DWORD 0									; Initialized sumEarned variable.
-sumPossible DWORD 0									; Initialized sumPossible variable.
-resultGrade DWORD 0									; Initialized resultGrade variable.
+validPinMinArray DWORD 3, 1, 7, 2					; Valid minimums for each pin.
+validPinMaxArray DWORD 6, 4, 9, 5					; Valid maximums for each pin.
 
 .CODE												; Begin the code section.
 _main PROC											; Begin the main function.
-	xor eax, eax									; Clear eax to 0.
-	xor edx, edx									; Start index of array as 0. (Clear to 0)
-	mov eax, [arrayEarnedGrade + edx * 4]			; Move the current arrayEarnedGrade index value to eax.
-	add sumEarned, eax								; Add the value in eax to sumEarned.
-	inc edx											; Increment the arrayEarnedGrade index that is stored in edx.
-	mov eax, [arrayEarnedGrade + edx * 4]			; Move the current arrayEarnedGrade index value to eax.
-	add sumEarned, eax								; Add the value in eax to sumEarned.
-	inc edx											; Increment the arrayEarnedGrade index that is stored in edx.
-	mov eax, [arrayEarnedGrade + edx * 4]			; Move the current arrayEarnedGrade index value to eax.
-	add sumEarned, eax								; Add the value in eax to sumEarned.
-	inc edx											; Increment the arrayEarnedGrade index that is stored in edx.
-	mov eax, [arrayEarnedGrade + edx * 4]			; Move the current arrayEarnedGrade index value to eax.
-	add sumEarned, eax								; Add the value in eax to sumEarned.
 
-	xor eax, eax									; Clear eax to 0.
-	xor edx, edx									; Start index of array as 0. (Clear to 0)
-	mov eax, [arrayPossibleGrade + edx * 4]			; Move the current arrayPossibleGrade index value to eax.
-	add sumPossible, eax							; Add the value in eax to sumPossible.
-	inc edx											; Increment the arrayPossibleGrade index that is stored in edx.
-	mov eax, [arrayPossibleGrade + edx * 4]			; Move the current arrayPossibleGrade index value to eax.
-	add sumPossible, eax							; Add the value in eax to sumPossible.
-	inc edx											; Increment the arrayPossibleGrade index that is stored in edx.
-	mov eax, [arrayPossibleGrade + edx * 4]			; Move the current arrayPossibleGrade index value to eax.
-	add sumPossible, eax							; Add the value in eax to sumPossible.
-	inc edx											; Increment the arrayPossibleGrade index that is stored in edx.
-	mov eax, [arrayPossibleGrade + edx * 4]			; Move the current arrayPossibleGrade index value to eax.
-	add sumPossible, eax							; Add the value in eax to sumPossible.
+xor eax, eax										; Clear eax to 0 for final pin validity check.
+xor edx, edx										; Clear edx to 0 for array index tracking.
+mov ecx, 4											; Set initial loop value of 4.
 
-	mov ebx, 100									; Move 100 (multiplier) to ebx.
-	mov eax, sumEarned								; Move sumEarned (multiplicand) to eax.
-	mul ebx											; Multiply eax by ebx.
-	mov sumEarned, eax								; Move value result in eax to sumEarned.
+pinLoop:											; Pin value check loop.
+	mov ebx, [pinArray + edx * 4]					; Set ebx to the value of the current index of pinArray.
+	mov esi, [validPinMinArray + edx * 4]			; Set esi to the value of the current index of validPinMinArray.
+	cmp ebx, esi									; Compare ebx with esi;
+	jl incorrectPin									; Jump to incorrectPin if the value of ebx is lower than esi.
+	mov esi, [validPinMaxArray + edx * 4]			; Set esi to the value of the current index of validPinMaxArray.
+	cmp ebx, esi									; Compare ebx with esi.
+	jg incorrectPin									; Jump to incorrectPin if the value of ebx is greater than esi.
+	inc edx											; Increment edx for the array counter.
+	loop pinLoop									; Go back to the beginning of pinLoop.
+	jmp correctPin									; Unconditional jump to correctPin.
 
-	xor edx, edx									; Clear edx to 0. (dividend upper bits).
-	mov eax, sumEarned								; Move the value of sumEarned to eax (dividend lower bits).
-	mov ecx, sumPossible							; Move the value of sumPossible to ecx (divisor).
-	div ecx											; Divide edx:eax by ecx (result stored as quotient in eax and remainder in edx).
 
-	mov resultGrade, eax							; Store the quotient value of eax in resultGrade.
+incorrectPin:										; Incorrect pin label.
+	mov eax, 0										; Set eax to 0 to indicate a false pin.
+	jmp done										; Unconditional jump to done.
+
+correctPin:											; Correct pin label.	
+	mov eax, 1										; Set eax to 1 to indicate a true pin.
+
+done:												; Done label to jump over correctPin.
 
 	INVOKE ExitProcess, 0							; Call exit process to end function.
 _main ENDP											; End the main function.
