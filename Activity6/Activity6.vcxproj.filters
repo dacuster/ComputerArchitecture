@@ -19,4 +19,14 @@
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="code.obj">
+      <Filter>Source Files</Filter>
+    </Object>
+  </ItemGroup>
 </Project>
