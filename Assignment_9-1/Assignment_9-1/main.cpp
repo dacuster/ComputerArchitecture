@@ -1,6 +1,5 @@
-// Program 9.2
-// Floating-Point Inline Assembly - Visual C++ (32-bit)
-// Copyright (c) 2017 Hall & Slonka
+// Program 9.1
+// Nick DaCosta
 
 
 // Get 2 floats from user
