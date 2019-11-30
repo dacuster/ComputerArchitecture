@@ -26,83 +26,138 @@
   c-A2
   d-A3
 */
-//initializing and declaring led rows
-uint8_t columns[16] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, A2, A1, A5, A4};
-uint8_t* column;// = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, A2, A1, A5, A4};
-const uint8_t COLUMN_COUNT = 16;
+// Initializing and declaring column pins.
+//const uint8_t COLUMN_COUNT = 16;
+//const uint8_t COLUMN[COLUMN_COUNT] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, A2, A1, A5, A4};
+
+// Initializing and declaring port direction.
+//const uint8_t PORT_COUNT = 3;
+//const uint8_t PORT_DIRECTION[PORT_COUNT] = {DDRB, DDRC, DDRD};
+
+// Initializing and declaring ports.
+//const uint8_t PORT[PORT_COUNT] = {PORTB, PORTC, PORTD};
+
 //initializing and declaring led layers
-const int layer[4] = {A3, A0, 1, 0};
-const int LAYER_COUNT = 4;
+//const uint8_t LAYER_COUNT = 4;
+//const uint8_t LAYER[LAYER_COUNT] = {A3, A0, 1, 0};
 
-uint8_t address = 987;
+//int time = 250;
 
-int time = 250;
+uint8_t bPort = _SFR_IO_ADDR(DDRB);
+
+
+
+//asm volatile
+//(
+//  ".data \n\t"
+//  "num1: .long 2 \n\t"
+//);
+
 
 void setup()
 {
-  column = columns;
   asm volatile
   (
-    "sbi %2, %17 \n\t" // Turn on pin 13
-    "sbi %2, %16 \n\t" // Turn on pin 12
-    "sbi %2, %15 \n\t" // Turn on pin 11
-    "sbi %2, %14 \n\t" // Turn on pin 10
-    "sbi %2, %13 \n\t" // Turn on pin 9
-    "sbi %2, %12 \n\t" // Turn on pin 8
-    "sbi %1, %11 \n\t" // Turn on pin 7
-    "sbi %1, %10 \n\t"  // Turn on pin 6
-    "sbi %1, %9 \n\t"  // Turn on pin 5
-    "sbi %1, %8 \n\t"  // Turn on pin 4
-    "sbi %1, %7 \n\t"  // Turn on pin 3
-    "sbi %1, %6 \n\t"  // Turn on pin 2
-    "sbi %1, %5 \n\t"  // Turn on pin 1
-    "sbi %1, %4 \n\t"  // Turn on pin 0
-    "sbi %3, %18 \n\t" // Turn on pin A0
-    "sbi %3, %19 \n\t" // Turn on pin A1
-    "sbi %3, %20 \n\t" // Turn on pin A2
-    "sbi %3, %21 \n\t" // Turn on pin A3
-    "sbi %3, %22 \n\t" // Turn on pin A4
-    "sbi %3, %23 \n\t" // Turn on pin A5
-    //"mov z, z+1"
-    "ldd r16, z+14 \n\t"
-    "mov %0, r16 \n\t"
-    //"lds %0, r16 \n\t"
+    //"sbi %1, %16 \n\t" // Turn on pin 13
+    //"sbi %1, %15 \n\t" // Turn on pin 12
+    //"sbi %1, %14 \n\t" // Turn on pin 11
+    //"sbi %1, %13 \n\t" // Turn on pin 10
+    //"sbi %1, %12 \n\t" // Turn on pin 9
+    //"sbi %1, %11 \n\t" // Turn on pin 8
+    //"sbi %0, %10 \n\t" // Turn on pin 7
+    //"sbi %0, %9 \n\t"  // Turn on pin 6
+    //"sbi %0, %8 \n\t"  // Turn on pin 5
+    //"sbi %0, %7 \n\t"  // Turn on pin 4
+    //"sbi %0, %6 \n\t"  // Turn on pin 3
+    //"sbi %0, %5 \n\t"  // Turn on pin 2
+    //"sbi %0, %4 \n\t"  // Turn on pin 1
+    //"sbi %0, %3 \n\t"  // Turn on pin 0
+    //"sbi %2, %17 \n\t" // Turn on pin A0
+    //"sbi %2, %18 \n\t" // Turn on pin A1
+    //"sbi %2, %19 \n\t" // Turn on pin A2
+    //"sbi %2, %20 \n\t" // Turn on pin A3
+    //"sbi %2, %21 \n\t" // Turn on pin A4
+    //"sbi %2, %22 \n\t" // Turn on pin A5
+    //"ld r16, x   \n\t"
+    //"mov %0 , r16 \n\t"
+    //"ldd r16, y+1   \n\t"
+    //"mov %1 , r16 \n\t"
+    //"ld r16, z   \n\t"
+    "mov %2 , r16 \n\t"
+    //"sbi %0, %1 \n\t"
+    //"sbi %0, %4 \n\t"
+    //"sbi %2, %3 \n\t"
+    //"sbi %2, %4 \n\t"
+    "sbi 4, 0 \n\t"
+    "sbi 4, 1 \n\t"
+    "sbi 4, 2 \n\t"
+    "sbi 4, 3 \n\t"
+    "sbi 4, 4 \n\t"
+    "sbi 4, 5 \n\t"
+    "sbi 5, 0 \n\t"
+    "sbi 5, 2 \n\t"
+    "sbi 5, 4 \n\t"
+    "sbi 5, 5 \n\t"
+    
+    
+    
+    // load indirect with displacement. use 'z' register as input or assign register value to 'z' "ldd r16, z+14 \n\t" (accesses index 15 from input array as 'z' register and places the value in r16. 'z' is input constraint.
     // ldd load indirect with displacement (address + offset) array access?
     :
-    "=r" (address)
+    // Outputs.
     :
-    "I" (_SFR_IO_ADDR(DDRD)), // PORTD         %0
-    "I" (_SFR_IO_ADDR(DDRB)), // PORTB         %1
-    "I" (_SFR_IO_ADDR(DDRC)), // PORTC         %2
-    "I" (DDD0),               // Digital 0     %3
-    "I" (DDD1),               // Digital 1     %4
-    "I" (DDD2),               // Digital 2     %5
-    "I" (DDD3),               // Digital 3     %6
-    "I" (DDD4),               // Digital 4     %7
-    "I" (DDD5),               // Digital 5     %8
-    "I" (DDD6),               // Digital 6     %9
-    "I" (DDD7),               // Digital 7     %10
-    "I" (DDB0),               // Digital 8     %11
-    "I" (DDB1),               // Digital 9     %12
-    "I" (DDB2),               // Digital 10    %13
-    "I" (DDB3),               // Digital 11    %14
-    "I" (DDB4),               // Digital 12    %15
-    "I" (DDB5),               // Digital 13    %16
-    "I" (DDC0),               // Analog  0     %17
-    "I" (DDC1),               // Analog  1     %18
-    "I" (DDC2),               // Analog  2     %19
-    "I" (DDC3),               // Analog  3     %20
-    "I" (DDC4),               // Analog  4     %21
-    "I" (DDC5),               // Analog  5     %22
-    "z" (columns)
-    :
-    "r16"
+    // Inputs.
+    //"I" (_SFR_IO_ADDR(DDRD)), // PORTD         %0
+    //"I" (_SFR_IO_ADDR(DDRB)), // PORTB         %1
+    //"I" (_SFR_IO_ADDR(DDRC)), // PORTC         %2
+    //"I" (DDD0),               // Digital 0     %3
+    //"I" (DDD1),               // Digital 1     %4
+    //"I" (DDD2),               // Digital 2     %5
+    //"I" (DDD3),               // Digital 3     %6
+    //"I" (DDD4),               // Digital 4     %7
+    //"I" (DDD5),               // Digital 5     %8
+    //"I" (DDD6),               // Digital 6     %9
+    //"I" (DDD7),               // Digital 7     %10
+    //"I" (DDB0),               // Digital 8     %11
+    //"I" (DDB1),               // Digital 9     %12
+    //"I" (DDB2),               // Digital 10    %13
+    //"I" (DDB3),               // Digital 11    %14
+    //"I" (DDB4),               // Digital 12    %15
+    //"I" (DDB5),               // Digital 13    %16
+    //"I" (DDC0),               // Analog  0     %17
+    //"I" (DDC1),               // Analog  1     %18
+    //"I" (DDC2),               // Analog  2     %19
+    //"I" (DDC3),               // Analog  3     %20
+    //"I" (DDC4),               // Analog  4     %21
+    //"I" (DDC5),               // Analog  5     %22
+    //"z" (COLUMN)
+    //"I" (_SFR_IO_ADDR(DDRB)), // PORTD         %0
+    "I" (bPort),
+    "I" (5), // PORTB         %1
+    "I" (_SFR_IO_ADDR(PORTB)), // PORTD         %0
+    "I" (5),
+    "I" (4)
   );
 
   Serial.begin(9600);
+  //Serial.println(xValue, HEX);
+  //Serial.println(yValue, HEX);
+  //Serial.println(zValue, HEX);
+  uint8_t address = PORTB;
+  uint8_t address2 = PINC1;
+  uint8_t address3 = PINC2;
+  uint8_t address4 = _SFR_IO_ADDR(PORTC);
+  uint8_t address5 = _SFR_IO_ADDR(DDRD);
+  uint8_t address6 = _SFR_IO_ADDR(PORTD);
   Serial.println(address);
-  int pointer = &column;
-  Serial.println(pointer);
+  Serial.println(address2);
+  Serial.println(address3);
+  Serial.println(address4);
+  Serial.println(address5);
+  Serial.println(address6);
+  //Serial.println(_SFR_IO_ADDR(DDRB), HEX);
+  //Serial.println(_SFR_IO_ADDR(DDRC), HEX);
+  
   //printf("Testing %p\n", &column);
   
   //setting rows to ouput
