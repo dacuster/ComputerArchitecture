@@ -39,6 +39,19 @@ asm volatile
   // Uno uses clock prescaler of 1.
   // At 16MHz with prescaler of 1, ~3963 cycles occur in 1 millisecond.
   ".equ clockCycleCounter, 3963 \n\t"
+
+  // Set global delay time.
+  ".equ globalDelayTime, 250 \n\t"
+
+  // Data Direction Register Addresses.
+  ".equ DDRD, 0x0A \n\t"
+  ".equ DDRB, 0x04 \n\t"
+  ".equ DDRC, 0x07 \n\t"
+
+  // Port Register Addresses.
+  ".equ PORTD, 0x0B \n\t"
+  ".equ PORTB, 0x05 \n\t"
+  ".equ PORTC, 0x08 \n\t"
   /***************************
   **  DATA SEGMENT (START)  **
   ***************************/
@@ -69,8 +82,51 @@ asm volatile
   // Needed for Arduino build if using complete inline asm.
   "loop: \n\t"
 
+    // Turn everything off.
+    //"call turnEverythingOff \n\t"
+    
     // Flicker everything on.
-    "call flickerOn \n\t"
+    //"call flickerOn \n\t"
+
+    // Turn everything on.
+    //"call turnEverythingOn \n\t"
+
+    // Load global delay time.
+    //"ldi XL, lo8(globalDelayTime) \n\t"
+    //"ldi XH, hi8(globalDelayTime) \n\t"
+
+    // Delay
+    //"call delay \n\t"
+
+    // Turn all the columns off.
+    //"call turnColumnsOff \n\t"
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    // Delay for 1000 milliseconds.
+    "ldi XL, lo8(0x03E8) \n\t"
+    "ldi XH, hi8(0x03E8) \n\t"
+
+    "call delay \n\t"
+
+    // Turn everything on.
+    "call turnEverythingOn \n\t"
+
+    // Delay for 1000 milliseconds.
+    "ldi XL, lo8(0x03E8) \n\t"
+    "ldi XH, hi8(0x03E8) \n\t"
+
+    "call delay \n\t"
 
     // Jump back to the beginning of this loop.
     "jmp loop \n\t"
@@ -91,14 +147,14 @@ asm volatile
     "ldi r24, 0x3F \n\t"
 
     // Set the direction of data registers B and C. (0x04 and 0x07)
-    "out 0x04, r24 \n\t"
-    "out 0x07, r24 \n\t"
+    "out DDRB, r24 \n\t"
+    "out DDRC, r24 \n\t"
 
     // Load bitmask for data register D as all output. (0b11111111 = 255 = 0xFF)
     "ldi r24, 0xFF \n\t"
 
     // Set the direction of data register D. (0x0a)
-    "out 0x0a, r24 \n\t"
+    "out DDRD, r24 \n\t"
 
     // Pop registers before returning to caller.
     "pop r24 \n\t"
@@ -121,20 +177,20 @@ asm volatile
     // Load bitmask for port D. (0b11111100 = 252 = 0xFC)
     "ldi r24, 0xFC \n\t"
 
-    // Set the bitmask of port D. (0x0b, 0x08)
-    "out 0x0b, r24 \n\t"
+    // Set the bitmask of port D. (0x0b)
+    "out PORTD, r24 \n\t"
 
     // Load bitmask for port B. (0b00111111 = 63 = 0x3F)
     "ldi r24, 0x3F \n\t"
 
     // Set the bitmask for port B. (0x05)
-    "out 0x05, r24 \n\t"
+    "out PORTB, r24 \n\t"
 
     // Load bitmask for port C. (0b00110110 = 54 = 0x36)
     "ldi r24, 0x36 \n\t"
 
     // Set the bitmask for port C. (0x08)
-    "out 0x08, r24 \n\t"
+    "out PORTC, r24 \n\t"
 
     // Pop registers before returning to caller.
     "pop r24 \n\t"
@@ -157,20 +213,20 @@ asm volatile
     // Load bitmask for port D. (0b00000011 = 3 = 0x03)
     "ldi r24, 0x03 \n\t"
 
-    // Set the bitmask of port D. (0x0b, 0x08)
-    "out 0x0b, r24 \n\t"
+    // Set the bitmask of port D. (0x0b)
+    "out PORTD, r24 \n\t"
 
     // Load bitmask for port B. (0b00000000 = 0 = 0x00)
     "ldi r24, 0x00 \n\t"
 
     // Set the bitmask for port B. (0x05)
-    "out 0x05, r24 \n\t"
+    "out PORTB, r24 \n\t"
 
     // Load bitmask for port C. (0b00001001 = 9 = 0x09)
     "ldi r24, 0x09 \n\t"
 
     // Set the bitmask for port C. (0x08)
-    "out 0x08, r24 \n\t"
+    "out PORTC, r24 \n\t"
 
     // Pop registers before returning to caller.
     "pop r24 \n\t"
@@ -180,6 +236,60 @@ asm volatile
   /******************************************
   **  TURN EVERYTHING ON SUBROUTINE (END)  **
   ******************************************/
+
+  /******************************************
+  **  TURN COLUMNS OFF SUBROUTINE (START)  **
+  ******************************************/
+  // Turn off all the LED columns.
+  "turnColumnsOff: \n\t"
+
+    // Push registers used by subroutine before proceeding.
+    "push r24 \n\t"
+
+    // Load bitmask for port D. (0b11111100 = 252 = 0xFC)
+    //"ldi r24, 0xFC \n\t"
+
+    // Get the current PORTD bitmask.
+    "in r24, PORTD \n\t"
+
+    // Logical OR the current bitmask with the new bitmask (0b11111100 = 252 = 0xFC)
+    "ori r24, 0xFC \n\t"
+
+    // Set the bitmask of port D. (0x0b)
+    "out PORTD, r24 \n\t"
+
+    // Load bitmask for port B. (0b00111111 = 63 = 0x3F)
+    //"ldi r24, 0x3F \n\t"
+
+    // Get the current PORTB bitmask.
+    "in r24, PORTB \n\t"
+
+    // Logical OR the current bitmask with the new bitmask (0b00111111 = 63 = 0x3F)
+    "ori r24, 0x3F \n\t"
+
+    // Set the bitmask for port B. (0x05)
+    "out PORTB, r24 \n\t"
+
+    // Load bitmask for port C. (0b00110110 = 54 = 0x36)
+    //"ldi r24, 0x36 \n\t"
+
+    // Get the current PORTC bitmask.
+    "in r24, PORTC \n\t"
+
+    // Logical OR the current bitmask with the new bitmask (0b00110110 = 54 = 0x36)
+    "ori r24, 0x36 \n\t"
+
+    // Set the bitmask for port C. (0x08)
+    "out PORTC, r24 \n\t"
+
+    // Pop registers before returning to caller.
+    "pop r24 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
+  /****************************************
+  **  TURN COLUMNS OFF SUBROUTINE (END)  **
+  ****************************************/
 
   /************************************
   **  FLICKER ON SUBROUTINE (START)  **
