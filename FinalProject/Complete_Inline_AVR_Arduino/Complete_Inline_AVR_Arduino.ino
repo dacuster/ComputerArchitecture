@@ -1,3 +1,11 @@
+/******************************************
+**  Author: Nick DaCosta                 **
+**  Class: CSI 370-01                    **
+**  Professor: Brian R. Hall             **
+**  Assignment: Final Project            **
+**  Description: 4x4x4 LED Cube Effects  **
+******************************************/
+
 //        ATMEL ATMEGA8 & 168 / ARDUINO
 //
 //                  +-\/-+
@@ -17,176 +25,266 @@
 //      (D 8) PB0 14|    |15  PB1 (D 9) PWM
 //                  +----+
 
+/******************************
+**  INLINE ASSEMBLY (START)  **
+******************************/
 asm volatile
 (
-  // Data segment.
+  /***************************
+  **  DATA SEGMENT (START)  **
+  ***************************/
   ".data \n\t"
-  
-  // Create a Data Direction Resgister array of size 3.
-  // Data Direction Registers (DDRD(0x0A), DDRB(0x04), DDRC(0x07))
-  "ddrArray: .byte 3 \n\t"
-  
-  // Load the array pointer into the X register.
-  "ldi XL, lo8(ddrArray) \n\t"
-  "ldi XH, hi8(ddrArray) \n\t"
 
-  // Store the DDR addresses in the array increasing the index after storing.
-  "st X+, 0x0A \n\t"
-  "st X+, 0x04 \n\t"
-  "st X+, 0x07 \n\t"
+  // Create variable for clock delay timer.
+  // Uno uses clock prescaler of 1.
+  // At 16MHz with prescaler of 1, ~3963 cycles occur in 1 millisecond.
+  ".equ clockCycleCounter, 3963 \n\t"
+  /***************************
+  **  DATA SEGMENT (START)  **
+  ***************************/
 
-  // Create a PORT array for the I/O ports.
-  // Port Registers (PORTD(0x0B), PORTB(0x05), PORTC(0x08))
-  "portArray: .byte 3 \n\t"
-
-  // Load the array pointer into the X register.
-  "ldi XL, lo8(portArray) \n\t"
-  "ldi XH, hi8(portArray) \n\t"
-
-  // Store the PORT addresses in the array increasing the index after storing.
-  "st X+, 0x0B \n\t"
-  "st X+, 0x05 \n\t"
-  "st X+, 0x08 \n\t"
-
-  // Create a bitmask array for the pinmode for each DDR.
-  // Bitmasks to set pins to I/O mode. (1 = Output)
-  // DDRD = D-Pins 7 , 6 , 5 , 4 , 3, 2, 1, 0
-  // DDRB = D-Pins 13, 12, 11, 10, 9, 8
-  // DDRC = A-Pins 5 , 4 , 3 , 2 , 1, 0
-  "outputBitmaskArray: .byte 3 \n\t"
-
-  // Load the array pointer into the X register.
-  "ldi XL, lo8(outputBitmaskArray) \n\t"
-  "ldi XH, hi8(outputBitmaskArray) \n\t"
-
-  // Store the bitmask values for each DDR.
-  // Values need to be 31 or less 0b00111111 = 63 and 0b11111111 = 255
-  // Load into r16 first then store in the array.
-  "ldi r16, 0b11111111 \n\t"
-  "st X+, r16 \n\t"
-  "ldi r16, 0b00111111 \n\t"
-  "st X+, r16 \n\t"
-  "ldi r16, 0b00111111 \n\t"
-  "st X+, r16 \n\t"
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  
-  // Data Direction Register B at 0x24 (0x20 with offset 0x04)
-  //".equ DDRB,   4 \n\t"
-  // Pin Output Register B at 0x25 (0x20 with offset 0x05)
-  //".equ PORTB,  5 \n\t"
-  // Data Direction Register C at 0x27 (0x20 with offset 0x07)
-  //".equ DDRC,   7 \n\t"
-  // Pin Output Register C at 0x28 (0x20 with offset 0x08)
-  //".equ PORTC,  8 \n\t"
-  // Data Direction Register D at 0x2A (0x20 with offset 0x0A)
-  //".equ DDRD,   10 \n\t"
-  // Pin Output Register D at 0x31 (0x2B with offset 0x0B)
-  //".equ PORTD,  11 \n\t"
-  // Set everything in an array.
-  // Calculate array length using .equ and current location - previous variable
-  //".equ DDR, ddr \n\t"
-
-  // ** IO operators need constant values. (.equ) **
-
-  // Setup the output pins on DDRD.
-  //".equ dOutputBitMask, 0b11111111 \n\t"
-  // Setup the output pins on DDRB.
-  //".equ bOutputBitMask, 0b00111111 \n\t"
-  // Setup the output pins on DDRC.
-  //".equ cOutputBitMask, 0b00111111 \n\t"
-
-  //".equ testMask, 0b00010011 \n\t"
-
+  /***************************
+  **  CODE SEGMENT (START)  **
+  ***************************/
   ".text \n\t"
-  ".globl setup, loop, assembly \n\t"
+  
+  // List all global subroutines.
+  ".globl setup, loop \n\t"
+
+  /*******************************
+  **  SETUP SUBROUTINE (START)  **
+  *******************************/
+  // Needed for Arduino build if using complete inline asm.
   "setup: \n\t"
 
+    // Call port setup subroutine.
+    "call setPortDirections \n\t"
+  /*****************************
+  **  SETUP SUBROUTINE (END)  **
+  *****************************/
 
-  //"mov r16, 3 \n\t"
-  //"ldi YL, lo8(testing) \n\t"
-  //"ldi YH, hi8(testing) \n\t"
-  //"movw r16, ddrArray \n\t"
-  // Load ddr array into x-register
-  //"ldi YL, low(r16) \n\t"
-  //"ldi YH, high(r16) \n\t"
-  
-  // Load output bit mask array into y-register.
-  //"lds YL, lo8(outputBitmaskArray) \n\t"
-  //"lds YH, hi8(outputBitmaskArray) \n\t"
-  
-  // Set r17 to loop counter size of arrays.
-  //"mov r17, arraySize \n\t"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-  // WORKING SETTING ALL PINS AS OUTPUT AND SETTING THEM BASED ON THE BITMASK PASSED TO THEM.
-  //"in r16, DDRB \n\t"
-  //"ori r16, bBitMask \n\t"
-  //"out DDRB, r16 \n\t"
-  //"in r16, PORTB \n\t"
-  //"ori r16, bBitMask \n\t"
-  //"out PORTB, r16 \n\t"
-    
-  
-  
-  
-  //"sbi ddrb, output \n\t"
-  //"sbi portb, bit5 \n\t"
-  //"sbi DDRB, 5 \n\t"
-  //"sbi PORTB, 5 \n\t"
-  //"ldi r28, lo8(ddr + 1) \n\t"
-  //"ldi r29, hi8(ddr + 1) \n\t"
-  //"ld r1, x \n\t"
-  //"sbi $(r1), 7 \n\t"
-  //"ld r16, 0x05 \n\t"
-  
-  // Load in DDRB to r16.
-  //"in r16, DDRB \n\t"
-  // 
-  //"ori r16, bBitMask \n\t"
-  //"in r16, bBitMask \n\t"
-  //"ori r16, testMask \n\t"
-  //"out DDRB, r16 \n\t"
-  //"in r16, PORTB \n\t"
-  //"ori r16, testMask \n\t"
-  //"out PORTB, r16 \n\t"
-
-  
-
-
-
-
-  "assembly: \n\t"
+  /******************************
+  **  LOOP SUBROUTINE (START)  **
+  ******************************/
+  // Needed for Arduino build if using complete inline asm.
   "loop: \n\t"
+
+    // Flicker everything on.
+    "call flickerOn \n\t"
+
+    // Jump back to the beginning of this loop.
+    "jmp loop \n\t"
+  /****************************
+  **  LOOP SUBROUTINE (END)  **
+  ****************************/
+
+  /********************************************
+  **  SET PORT DIRECTION SUBROUTINE (START)  **
+  ********************************************/
+  // Set all the port directions to output.
+  "setPortDirections: \n\t"
+
+    // Push registers used by subroutine before proceeding.
+    "push r24 \n\t"
+
+    // Load bitmask for data registers B and C as all output. (0b00111111 = 63 = 0x3F)
+    "ldi r24, 0x3F \n\t"
+
+    // Set the direction of data registers B and C. (0x04 and 0x07)
+    "out 0x04, r24 \n\t"
+    "out 0x07, r24 \n\t"
+
+    // Load bitmask for data register D as all output. (0b11111111 = 255 = 0xFF)
+    "ldi r24, 0xFF \n\t"
+
+    // Set the direction of data register D. (0x0a)
+    "out 0x0a, r24 \n\t"
+
+    // Pop registers before returning to caller.
+    "pop r24 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
+  /******************************************
+  **  SET PORT DIRECTION SUBROUTINE (END)  **
+  ******************************************/
+
+  /*********************************************
+  **  TURN EVERYTHING OFF SUBROUTINE (START)  **
+  *********************************************/
+  // Turn off all the leds.
+  "turnEverythingOff: \n\t"
+
+    // Push registers used by subroutine before proceeding.
+    "push r24 \n\t"
+
+    // Load bitmask for port D. (0b11111100 = 252 = 0xFC)
+    "ldi r24, 0xFC \n\t"
+
+    // Set the bitmask of port D. (0x0b, 0x08)
+    "out 0x0b, r24 \n\t"
+
+    // Load bitmask for port B. (0b00111111 = 63 = 0x3F)
+    "ldi r24, 0x3F \n\t"
+
+    // Set the bitmask for port B. (0x05)
+    "out 0x05, r24 \n\t"
+
+    // Load bitmask for port C. (0b00110110 = 54 = 0x36)
+    "ldi r24, 0x36 \n\t"
+
+    // Set the bitmask for port C. (0x08)
+    "out 0x08, r24 \n\t"
+
+    // Pop registers before returning to caller.
+    "pop r24 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
+  /*******************************************
+  **  TURN EVERYTHING OFF SUBROUTINE (END)  **
+  *******************************************/
+
+  /********************************************
+  **  TURN EVERYTHING ON SUBROUTINE (START)  **
+  ********************************************/
+  // Turn on all the leds.
+  "turnEverythingOn: \n\t"
+
+    // Push registers used by subroutine before proceeding.
+    "push r24 \n\t"
+
+    // Load bitmask for port D. (0b00000011 = 3 = 0x03)
+    "ldi r24, 0x03 \n\t"
+
+    // Set the bitmask of port D. (0x0b, 0x08)
+    "out 0x0b, r24 \n\t"
+
+    // Load bitmask for port B. (0b00000000 = 0 = 0x00)
+    "ldi r24, 0x00 \n\t"
+
+    // Set the bitmask for port B. (0x05)
+    "out 0x05, r24 \n\t"
+
+    // Load bitmask for port C. (0b00001001 = 9 = 0x09)
+    "ldi r24, 0x09 \n\t"
+
+    // Set the bitmask for port C. (0x08)
+    "out 0x08, r24 \n\t"
+
+    // Pop registers before returning to caller.
+    "pop r24 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
+  /******************************************
+  **  TURN EVERYTHING ON SUBROUTINE (END)  **
+  ******************************************/
+
+  /************************************
+  **  FLICKER ON SUBROUTINE (START)  **
+  ************************************/
+  // Flicker all the leds on and off.
+  "flickerOn: \n\t"
+
+    // Push any registers used in this subroutine on the stack.
+    "push r26 \n\t"
+    "push r27 \n\t"
+
+    // Set delay time using X register. (150ms = 0x96)
+    "ldi XL, lo8(0x96) \n\t"
+    "ldi XH, hi8(0x96) \n\t"
+
+    // Start the flicker loop.
+    "flickerOnLoop: \n\t"
+
+      // Turn everything on.
+      "call turnEverythingOn \n\t"
+
+      // Delay.
+      "call delay \n\t"
+
+      // Turn everything off.
+      "call turnEverythingOff \n\t"
+
+      // Delay.
+      "call delay \n\t"
+
+      // Subtract from the initial delay timer in the X register.
+      "sbiw X, 0x05 \n\t"
+
+      // Go back to the start of the flicker loop if the zero flag is not set.
+      "brne flickerOnLoop \n\t"
+
+    // Pop any registers used in this subroutine off the stack.
+    "pop r27 \n\t"
+    "pop r26 \n\t"
+
+    // Return to the caller.
+    "ret \n\t"
+  /**********************************
+  **  FLICKER ON SUBROUTINE (END)  **
+  **********************************/
+
+  /*************************************
+  **  DELAY TIMER SUBROUTINE (START)  **
+  *************************************/
+  // Create millisecond delay timer.
+  "delay: \n\t"
+
+    // Push any registers being used in this timer loop.
+    "push r28 \n\t"
+    "push r29 \n\t"
+    "push r30 \n\t"
+    "push r31 \n\t"
+
+    // Load the millisecond delay time from the Z register into the Y register.
+    "movw Y, X \n\t"
+
+    // Create delay counter loop.
+    "delayCounterLoop: \n\t"
+
+      // Subtract 1 from millisecond counter in Y register.
+      "sbiw Y, 1 \n\t"
+
+      // Jump to end of subroutine to return to caller.
+      "breq delayEnd \n\t"
+
+      // Load clock cycle counter into Z register
+      "ldi ZL, lo8(clockCycleCounter) \n\t"
+      "ldi ZH, hi8(clockCycleCounter) \n\t"
+
+      // Create clock counter loop.
+      "clockCounterLoop: \n\t"
+
+        // Subtract 1 from Z register which holds the clock cycle counter.
+        "sbiw Z, 1 \n\t"
+
+        // Branch back to the clock cycle counter loop if the zero flag is not set.
+        "brne clockCounterLoop \n\t"
+
+        // Branch back to the start of the delay counter loop if the zero flag has been set.
+        "breq delayCounterLoop \n\t"
+
+    // End of the delay timer.
+    "delayEnd: \n\t"
+
+      // Pop any registers that were used in the loop.
+      "pop r31 \n\t"
+      "pop r30 \n\t"
+      "pop r29 \n\t"
+      "pop r28 \n\t"
+
+    // Return to the caller.
+    "ret \n\t"
+  /***********************************
+  **  DELAY TIMER SUBROUTINE (END)  **
+  ***********************************/
+  
+  /*************************
+  **  CODE SEGMENT (END)  **
+  *************************/
 );
+/****************************
+**  INLINE ASSEMBLY (END)  **
+****************************/
