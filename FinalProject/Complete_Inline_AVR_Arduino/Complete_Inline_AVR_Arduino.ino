@@ -86,25 +86,23 @@ asm volatile
     "call turnEverythingOff \n\t"
     
     // Flicker everything on.
-    "call flickerOn \n\t"
+    //"call flickerOn \n\t"
 
     // Turn everything on.
-    "call turnEverythingOn \n\t"
+    //"call turnEverythingOn \n\t"
 
     // Load global delay time.
-    "ldi XL, lo8(globalDelayTime) \n\t"
-    "ldi XH, hi8(globalDelayTime) \n\t"
+    //"ldi XL, lo8(globalDelayTime) \n\t"
+    //"ldi XH, hi8(globalDelayTime) \n\t"
 
     // Delay
-    "call delay \n\t"
+    //"call delay \n\t"
 
     // Turn all the columns off.
-    "call turnColumnsOff \n\t"
+    //"call turnColumnsOff \n\t"
 
-    // Toggle layers up and down
-    "call toggleLayersUpAndDown \n\t"
-
-
+    // Layer accordion effect.
+    //"call layerAccordion \n\t"
 
 
 
@@ -114,13 +112,15 @@ asm volatile
 
 
 
-    
+
+
+    "call layerDownAndUp \n\t"
     
     // Delay for 1000 milliseconds.
-    //"ldi XL, lo8(0x03E8) \n\t"
-    //"ldi XH, hi8(0x03E8) \n\t"
+    "ldi XL, lo8(0x03E8) \n\t"
+    "ldi XH, hi8(0x03E8) \n\t"
 
-    //"call delay \n\t"
+    "call delay \n\t"
 
     // Turn everything on.
     //"call turnEverythingOn \n\t"
@@ -344,11 +344,11 @@ asm volatile
   **  TURN COLUMNS OFF SUBROUTINE (END)  **
   ****************************************/
 
-  /****************************************
-  **  TOGGLE LAYERS UP AND DOWN (START)  **
-  ****************************************/
+  /*****************************************
+  **  LAYER ACCORDION SUBROUTINE (START)  **
+  *****************************************/
   // Turn all layers on and off up and down cube.
-  "toggleLayersUpAndDown: \n\t"
+  "layerAccordion: \n\t"
 
     // Push all registers being used in this subroutine.
     "push r16 \n\t"
@@ -377,13 +377,13 @@ asm volatile
     "in r19, PORTC \n\t"
 
     // Start the main loop.
-    "startLayerLoop: \n\t"
+    "startToggleLayerLoop: \n\t"
 
       // Load the bottom up loop counter. (2 loops)
       "ldi r20, 0x02 \n\t"
 
       // Toggle layers starting at bottom.
-      "layerBottomUpLoop: \n\t"
+      "layerToggleBottomUpLoop: \n\t"
 
         // Toggle layer 0 (bottom). Pin D0 (PORTD bit 0) bitmask = 0b00000001 = 1 = 0x01
         "ldi r21, 0x01 \n\t"
@@ -437,13 +437,13 @@ asm volatile
         "dec r20 \n\t"
 
         // Branch back to beginning of layer up loop if zero flag isn't set.
-        "brne layerBottomUpLoop \n\t"
+        "brne layerToggleBottomUpLoop \n\t"
 
       // Load the top down loop counter. (2 loops)
       "ldi r20, 0x02 \n\t"
 
       // Toggle layers starting at top.
-      "layerTopDownLoop: \n\t"
+      "layerToggleTopDownLoop: \n\t"
 
         // Toggle layer 3 (top). Pin A3 (PORTC bit 3) bitmask = 0b00001000 = 8 = 0x08
         "ldi r21, 0x08 \n\t"
@@ -497,13 +497,13 @@ asm volatile
         "dec r20 \n\t"
 
         // Branch back to beginning of layer up loop if zero flag isn't set.
-        "brne layerTopDownLoop \n\t"
+        "brne layerToggleTopDownLoop \n\t"
 
       // Decrement main loop timer.
       "dec r17 \n\t"
 
       // Branch to the beginning of the main loop if the zero flag isn't set.
-      "brne startLayerLoop \n\t"
+      "brne startToggleLayerLoop \n\t"
 
     // Pop registers used in this subroutine before returning to the caller.
     "pop r21 \n\t"
@@ -515,9 +515,248 @@ asm volatile
 
     // Return to caller.
     "ret \n\t"
-  /**************************************
-  **  TOGGLE LAYERS UP AND DOWN (END)  **
-  **************************************/
+  /***************************************
+  **  LAYER ACCORDION SUBROUTINE (END)  **
+  ***************************************/
+
+  /*******************************************
+  **  LAYER DOWN AND UP SUBROUTINE (START)  **
+  *******************************************/
+  // Turn each layer on then off from top to bottom and back up.
+  "layerDownAndUp: \n\t"
+
+    // Push all registers being used in this subroutine.
+    "push r16 \n\t"
+    "push r17 \n\t"
+    "push r18 \n\t"
+    "push r19 \n\t"
+    "push r20 \n\t"
+    "push r21 \n\t"
+    "push r0  \n\t"
+    "push r1  \n\t"
+    "push r2  \n\t"
+
+    // Load delay time for each loop. (75ms = 0x4B)
+    "ldi r16, 0x4B \n\t"
+
+    // Turn all the leds off.
+    "call turnEverythingOff \n\t"
+
+    // Turn all the columns off so the LEDs can be turned on.
+    "call turnColumnsOff \n\t"
+
+    // Load the main loop counter. (1 loops) Change for more looping.
+    "ldi r17, 0x01 \n\t"
+
+    // Load the current PORTC bitmask.
+    "in r18, PORTC \n\t"
+    
+    // Load the current PORTD bitmask.
+    "in r19, PORTD \n\t"
+
+    // Load loop counters to go back up the cube later.
+    "mov r0, 0x03 \n\t"
+    "mov r1, 0x03 \n\t"
+    "mov r2, 0x03 \n\t"
+
+    // Start the main loop.
+    "startDownAndUpLayerLoop: \n\t"
+
+      // Start top layer toggle loop.
+      "startTopLayerToggle: \n\t"
+
+        // Load loop counter.
+        "ldi r20, 0x02 \n\t"
+
+        // Top layer toggle.
+        "topLayerToggle: \n\t"
+
+          // Load new bitmask for top layer. Pin A3 (PORTC bit 3) bitmask = 0b00001000 = 8 = 0x08
+          "ldi r21, 0x08 \n\t"
+
+          // Toggle the top layer. 
+          "eor r18, r21 \n\t"
+
+          // Load new bitmask into PORTC.
+          "out PORTC, r18 \n\t"
+
+          // Decrement loop counter before delay to
+          // go to next layer if layer is turned back off.
+          "dec r20 \n\t"
+
+          // If zero flag is set then this is second toggle.
+          "breq startSecondLayerToggle \n\t"
+
+          // Decrement counter for back up loop later.
+          "dec r0 \n\t"
+
+          // If zero flag is set then we just looped back up.
+          "breq endOfAccordion \n\t"
+
+          // Load the layer delay time into the X register and delay.
+          "ldi XL, lo8(0x4B) \n\t"
+          "ldi XH, hi8(0x4B) \n\t"
+          "call delay \n\t"
+
+          // Go back and toggle layer again.
+          "jmp topLayerToggle \n\t"
+
+      // Start second layer toggle loop.
+      "startSecondLayerToggle: \n\t"
+
+        // Load loop counter.
+        "ldi r20, 0x02 \n\t"
+
+        // Second layer toggle.
+        "secondLayerToggle: \n\t"
+
+          // Load new bitmask for second layer. Pin A0 (PORTC bit 0) bitmask = 0b00000001 = 1 = 0x01
+          "ldi r21, 0x01 \n\t"
+
+          // Toggle the second layer. 
+          "eor r18, r21 \n\t"
+
+          // Load new bitmask into PORTC.
+          "out PORTC, r18 \n\t"
+
+          // Decrement loop counter before delay to
+          // go to next layer if layer is turned back off.
+          "dec r20 \n\t"
+
+          // If zero flag is set then this is second toggle.
+          "breq startThirdLayerToggle \n\t"
+
+          // Decrement counter for back up loop later.
+          "dec r1 \n\t"
+
+          // If zero flag is set then we just looped back up.
+          "breq goToTopLayer \n\t"
+
+          // Load the layer delay time into the X register and delay.
+          "ldi XL, lo8(0x4B) \n\t"
+          "ldi XH, hi8(0x4B) \n\t"
+          "call delay \n\t"
+
+          // Go back and toggle layer again.
+          "jmp secondLayerToggle \n\t"
+
+      // Start third layer toggle loop.
+      "startThirdLayerToggle: \n\t"
+
+        // Load loop counter.
+        "ldi r20, 0x02 \n\t"
+
+        // Third layer toggle.
+        "thirdLayerToggle: \n\t"
+
+          // Load new bitmask for third layer. Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 3 = 0x03
+          "ldi r21, 0x03 \n\t"
+
+          // Toggle the third layer. 
+          "eor r19, r21 \n\t"
+
+          // Load new bitmask into PORTD.
+          "out PORTD, r19 \n\t"
+
+          // Decrement loop counter before delay to
+          // go to next layer if layer is turned back off.
+          "dec r20 \n\t"
+
+          // If zero flag is set then this is second toggle.
+          "breq startBottomLayerToggle \n\t"
+
+          // Decrement counter for back up loop later.
+          "dec r2 \n\t"
+
+          // If zero flag is set then we just looped back up.
+          "breq goToSecondLayer \n\t"
+
+          // Load the layer delay time into the X register and delay.
+          "ldi XL, lo8(0x4B) \n\t"
+          "ldi XH, hi8(0x4B) \n\t"
+          "call delay \n\t"
+
+          // Go back and toggle layer again if zero flag isn't set.
+          "jmp thirdLayerToggle \n\t"
+
+      // Start bottom layer toggle loop.
+      "startBottomLayerToggle: \n\t"
+
+        // Load loop counter.
+        "ldi r20, 0x02 \n\t"
+
+        // Bottom layer toggle.
+        "bottomLayerToggle: \n\t"
+
+          // Load new bitmask for bottom layer. Pin D0 (PORTD bit 0) bitmask = 0b00000001 = 1 = 0x01
+          "ldi r21, 0x01 \n\t"
+
+          // Toggle the bottom layer. 
+          "eor r19, r21 \n\t"
+
+          // Load new bitmask into PORTD.
+          "out PORTD, r19 \n\t"
+
+          // Decrement loop counter.
+          "dec r20 \n\t"
+
+          // Go back and toggle layer again if zero flag isn't set.
+          "breq bottomLayerToggle \n\t"
+
+          // Load the layer delay time into the X register and delay.
+          "ldi XL, lo8(0x96) \n\t"
+          "ldi XH, hi8(0x96) \n\t"
+          "call delay \n\t"
+
+      // Load a new loop counter to toggle the layer.
+      "ldi r20, 0x03 \n\t"
+
+      // Jump back to toggle the third layer
+      "jmp thirdLayerToggle \n\t"
+
+      // Sequence before toggling second layer again.
+      "goToSecondLayer: \n\t"
+
+      // Load a new loop counter to toggle the layer.
+      "ldi r20, 0x03 \n\t"
+
+      // Jump back to toggle second layer.
+      "jmp secondLayerToggle \n\t"
+
+      // Sequence before toggling second layer again.
+      "goToTopLayer: \n\t"
+
+      // Load a new loop counter to toggle the layer.
+      "ldi r20, 0x03 \n\t"
+
+      // Jump back to toggle top layer.
+      "jmp topLayerToggle \n\t"
+
+      // Label to end the accordion effect.
+      "endOfAccordion: \n\t"
+      
+      // Decrement the main loop counter.
+      "dec r17 \n\t"
+
+      // Go back to the beginning of the loop if the zero flag isn't set.
+      "brne startDownAndUpLayerLoop \n\t"
+
+    // Pop all the registers used in this subroutine.
+    "pop r2  \n\t"
+    "pop r1  \n\t"
+    "pop r0  \n\t"
+    "pop r21 \n\t"
+    "pop r20 \n\t"
+    "pop r19 \n\t"
+    "pop r18 \n\t"
+    "pop r17 \n\t"
+    "pop r16 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
+  /***********************************************
+  **  LAYER STOMP UP AND DOWN SUBROUTINE (END)  **
+  ***********************************************/
 
   /************************************
   **  FLICKER ON SUBROUTINE (START)  **
