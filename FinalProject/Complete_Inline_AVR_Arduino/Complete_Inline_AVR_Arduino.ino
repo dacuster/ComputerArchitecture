@@ -1,10 +1,10 @@
-/******************************************
-**  Author: Nick DaCosta                 **
-**  Class: CSI 370-01                    **
-**  Professor: Brian R. Hall             **
-**  Assignment: Final Project            **
-**  Description: 4x4x4 LED Cube Effects  **
-******************************************/
+/****************************************************
+**  Author: Nick DaCosta                           **
+**  Class: CSI 370-01                              **
+**  Professor: Brian R. Hall                       **
+**  Assignment: Final Project                      **
+**  Description: 4x4x4 LED Cube Effects Inline AVR **
+****************************************************/
 
 //        ATMEL ATMEGA8 & 168 / ARDUINO
 //
