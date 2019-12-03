@@ -47,6 +47,10 @@ void setup()
   }
   //seeding random for random pattern
   randomSeed(analogRead(10));
+  turnEverythingOff();
+  //digitalWrite(2, LOW);
+  //digitalWrite(A3, HIGH);
+  turnOnAndOffAllByLayerUpAndDownNotTimed();
 }
 //xxxxxxxxxxxxxxxxxxxxFUNCTION LOOPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -56,8 +60,11 @@ void loop()
   //turnEverythingOff();//turn all off
   //flickerOn();
   //turnEverythingOn();//turn all on
-  //delay(time);
+  //delay(time);  
   //turnOnAndOffAllByLayerUpAndDownNotTimed();
+
+
+  
   //layerstompUpAndDown();
   //turnOnAndOffAllByColumnSideways();
   //delay(time);
@@ -73,7 +80,7 @@ void loop()
   //turnEverythingOff();
   //delay(2000);
   //crissCross();
-  merryGoRound();
+  //merryGoRound();
 }
 
 
@@ -114,6 +121,14 @@ void turnColumnsOff()
     digitalWrite(column[i], 1);
   }
 }
+
+void turnColumnsOn()
+{
+  for(int i = 0; i<16; i++)
+  {
+    digitalWrite(column[i], 0);
+  }
+}
 /////////////////////////////////////////////////////////////flicker on
 void flickerOn()
 {
@@ -130,30 +145,42 @@ void flickerOn()
 //////////////turn everything on and off by layer up and down NOT TIMED
 void turnOnAndOffAllByLayerUpAndDownNotTimed()
 {
-  int x = 75;
+  int x = 75;//75;
+    turnEverythingOff();
+    turnColumnsOn();
   for(int i = 5; i != 0; i--)
   {
-    turnEverythingOn();
-    for(int i = 4; i!=0; i--)
-    {
-      digitalWrite(layer[i-1], 0);
-      delay(x);
-    }
-    for(int i = 0; i<4; i++)
-    {
-      digitalWrite(layer[i], 1);
-      delay(x);
-    }
-      for(int i = 0; i<4; i++)
-    {
-      digitalWrite(layer[i], 0);
-      delay(x);
-    }
+    //turnEverythingOn();
+    // All on starting from bottom
     for(int i = 4; i!=0; i--)
     {
       digitalWrite(layer[i-1], 1);
       delay(x);
     }
+    // All off starting at bottom.
+    for(int i = 4; i!=0; i--)
+    {
+      digitalWrite(layer[i-1], 0);
+      delay(x);
+    }
+    // All on starting at top
+    for(int i = 0; i<4; i++)
+    {
+      digitalWrite(layer[i], 1);
+      delay(x);
+    }
+    // All off starting at top
+      for(int i = 0; i<4; i++)
+    {
+      digitalWrite(layer[i], 0);
+      delay(x);
+    }
+    // All on starting from bottom
+    //for(int i = 4; i!=0; i--)
+    //{
+    //  digitalWrite(layer[i-1], 1);
+    //  delay(x);
+    //}
   }
 }
 //////////////////////////turn everything on and off by column sideways
@@ -512,6 +539,7 @@ void propeller()
       //turn on layer
       digitalWrite(layer[y-1], 1);
       //a1
+      // Turn columns on
       turnColumnsOff();
       digitalWrite(column[0], 0);
       digitalWrite(column[5], 0);
@@ -519,6 +547,7 @@ void propeller()
       digitalWrite(column[15], 0);
       delay(x);
       //b1
+      // Turn columns on
       turnColumnsOff();
       digitalWrite(column[4], 0);
       digitalWrite(column[5], 0);
@@ -526,6 +555,7 @@ void propeller()
       digitalWrite(column[11], 0);
       delay(x);
       //c1
+      // Turn columns on
       turnColumnsOff();
       digitalWrite(column[6], 0);
       digitalWrite(column[7], 0);
@@ -533,6 +563,7 @@ void propeller()
       digitalWrite(column[9], 0);
       delay(x);
       //d1
+      // Turn columns on
       turnColumnsOff();
       digitalWrite(column[3], 0);
       digitalWrite(column[6], 0);
@@ -540,6 +571,7 @@ void propeller()
       digitalWrite(column[12], 0);
       delay(x);
       //d2
+      // Turn columns on
       turnColumnsOff();
       digitalWrite(column[2], 0);
       digitalWrite(column[6], 0);
@@ -547,6 +579,7 @@ void propeller()
       digitalWrite(column[13], 0);
       delay(x);
       //d3
+      // Turn columns on
       turnColumnsOff();
       digitalWrite(column[1], 0);
       digitalWrite(column[5], 0);
@@ -556,6 +589,7 @@ void propeller()
     }
   }
   //d4
+      // Turn columns on
   turnColumnsOff();
   digitalWrite(column[0], 0);
   digitalWrite(column[5], 0);

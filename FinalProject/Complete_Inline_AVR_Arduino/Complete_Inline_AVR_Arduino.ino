@@ -83,50 +83,53 @@ asm volatile
   "loop: \n\t"
 
     // Turn everything off.
-    //"call turnEverythingOff \n\t"
+    "call turnEverythingOff \n\t"
     
     // Flicker everything on.
-    //"call flickerOn \n\t"
-
-    // Turn everything on.
-    //"call turnEverythingOn \n\t"
-
-    // Load global delay time.
-    //"ldi XL, lo8(globalDelayTime) \n\t"
-    //"ldi XH, hi8(globalDelayTime) \n\t"
-
-    // Delay
-    //"call delay \n\t"
-
-    // Turn all the columns off.
-    //"call turnColumnsOff \n\t"
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    // Delay for 1000 milliseconds.
-    "ldi XL, lo8(0x03E8) \n\t"
-    "ldi XH, hi8(0x03E8) \n\t"
-
-    "call delay \n\t"
+    "call flickerOn \n\t"
 
     // Turn everything on.
     "call turnEverythingOn \n\t"
 
-    // Delay for 1000 milliseconds.
-    "ldi XL, lo8(0x03E8) \n\t"
-    "ldi XH, hi8(0x03E8) \n\t"
+    // Load global delay time.
+    "ldi XL, lo8(globalDelayTime) \n\t"
+    "ldi XH, hi8(globalDelayTime) \n\t"
 
+    // Delay
     "call delay \n\t"
+
+    // Turn all the columns off.
+    "call turnColumnsOff \n\t"
+
+    // Toggle layers up and down
+    "call toggleLayersUpAndDown \n\t"
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    // Delay for 1000 milliseconds.
+    //"ldi XL, lo8(0x03E8) \n\t"
+    //"ldi XH, hi8(0x03E8) \n\t"
+
+    //"call delay \n\t"
+
+    // Turn everything on.
+    //"call turnEverythingOn \n\t"
+
+    // Delay for 1000 milliseconds.
+    //"ldi XL, lo8(0x03E8) \n\t"
+    //"ldi XH, hi8(0x03E8) \n\t"
+
+    //"call delay \n\t"
 
     // Jump back to the beginning of this loop.
     "jmp loop \n\t"
@@ -237,17 +240,19 @@ asm volatile
   **  TURN EVERYTHING ON SUBROUTINE (END)  **
   ******************************************/
 
-  /******************************************
-  **  TURN COLUMNS OFF SUBROUTINE (START)  **
-  ******************************************/
-  // Turn off all the LED columns.
-  "turnColumnsOff: \n\t"
+  /*****************************************
+  **  TURN COLUMNS ON SUBROUTINE (START)  **
+  *****************************************/
+  // Set columns so LEDs can be turned off.
+  // Columns are connected to cathode of LEDs
+  // so the columns should be turned on.
+  "turnColumnsOn: \n\t"
 
     // Push registers used by subroutine before proceeding.
     "push r24 \n\t"
 
     // Load bitmask for port D. (0b11111100 = 252 = 0xFC)
-    //"ldi r24, 0xFC \n\t"
+    "ldi r24, 0xFC \n\t"
 
     // Get the current PORTD bitmask.
     "in r24, PORTD \n\t"
@@ -287,9 +292,232 @@ asm volatile
 
     // Return to caller.
     "ret \n\t"
+  /***************************************
+  **  TURN COLUMNS ON SUBROUTINE (END)  **
+  ***************************************/
+
+  /******************************************
+  **  TURN COLUMNS OFF SUBROUTINE (START)  **
+  ******************************************/
+  // Set columns so LEDs can be turned on.
+  // Columns are connected to cathode of LEDs
+  // so the columns should be turned off.
+  "turnColumnsOff: \n\t"
+
+    // Push registers used by subroutine before proceeding.
+    "push r24 \n\t"
+
+    // Get the current PORTD bitmask.
+    "in r24, PORTD \n\t"
+
+    // OR then AND result to keep certain bits on and turn others off.
+    // Logical OR the current bitmask with the new bitmask. (0b11111100 = 252 = 0xFC)
+    "ori r24, 0xFC \n\t"
+
+    // Logical AND the current bitmask with the new bitmask. (0b00000011 = 3 = 0x03)
+    "andi r24, 0x03 \n\t"
+
+    // Set the bitmask of port D. (0x0b)
+    "out PORTD, r24 \n\t"
+
+    // Load the new bitmask for PORTB. (0b00000000 = 0 = 0x00)
+    "out PORTB, 0x00 \n\t"
+
+    // Get the current PORTC bitmask.
+    "in r24, PORTC \n\t"
+
+    // Logical OR the current bitmask with the new bitmask. (0b11110110 = 246 = 0xF6)
+    "ori r24, 0xF6 \n\t"
+
+    // Logical AND the current bitmask with the new bitmask. (0b00001001 = 9 = 0x09)
+    "andi r24, 0x09 \n\t"
+
+    // Set the bitmask for port C. (0x08)
+    "out PORTC, r24 \n\t"
+
+    // Pop registers before returning to caller.
+    "pop r24 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
   /****************************************
   **  TURN COLUMNS OFF SUBROUTINE (END)  **
   ****************************************/
+
+  /****************************************
+  **  TOGGLE LAYERS UP AND DOWN (START)  **
+  ****************************************/
+  // Turn all layers on and off up and down cube.
+  "toggleLayersUpAndDown: \n\t"
+
+    // Push all registers being used in this subroutine.
+    "push r16 \n\t"
+    "push r17 \n\t"
+    "push r18 \n\t"
+    "push r19 \n\t"
+    "push r20 \n\t"
+    "push r21 \n\t"
+
+    // Load delay time for each loop. (75ms = 0x4B)
+    "ldi r16, 0x4B \n\t"
+
+    // Turn all the leds off.
+    "call turnEverythingOff \n\t"
+
+    // Turn all the columns off so the LEDs can be turned on.
+    "call turnColumnsOff \n\t"
+
+    // Load the main loop counter. (5 loops)
+    "ldi r17, 0x05 \n\t"
+
+    // Load the current PORTD bitmask.
+    "in r18, PORTD \n\t"
+    
+    // Load the current PORTC bitmask.
+    "in r19, PORTC \n\t"
+
+    // Start the main loop.
+    "startLayerLoop: \n\t"
+
+      // Load the bottom up loop counter. (2 loops)
+      "ldi r20, 0x02 \n\t"
+
+      // Toggle layers starting at bottom.
+      "layerBottomUpLoop: \n\t"
+
+        // Toggle layer 0 (bottom). Pin D0 (PORTD bit 0) bitmask = 0b00000001 = 1 = 0x01
+        "ldi r21, 0x01 \n\t"
+        "eor r18, r21 \n\t"
+
+        // Load new bitmask into PORTD.
+        "out PORTD, r18 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 1 (2nd from bottom). Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 2 = 0x02
+        "ldi r21, 0x02 \n\t"
+        "eor r18, r21 \n\t"
+
+        // Load new bitmask into PORTD.
+        "out PORTD, r18 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 2 (2nd from top). Pin A0 (PORTC bit 0) bitmask = 0b00000001 = 1 = 0x01
+        "ldi r21, 0x01 \n\t"
+        "eor r19, r21 \n\t"
+
+        // Load new bitmask into PORTC.
+        "out PORTC, r19 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 3 (top). Pin A3 (PORTC bit 3) bitmask = 0b00001000 = 8 = 0x08
+        "ldi r21, 0x08 \n\t"
+        "eor r19, r21 \n\t"
+
+        // Load new bitmask into PORTC.
+        "out PORTC, r19 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Decrement the loop timer.
+        "dec r20 \n\t"
+
+        // Branch back to beginning of layer up loop if zero flag isn't set.
+        "brne layerBottomUpLoop \n\t"
+
+      // Load the top down loop counter. (2 loops)
+      "ldi r20, 0x02 \n\t"
+
+      // Toggle layers starting at top.
+      "layerTopDownLoop: \n\t"
+
+        // Toggle layer 3 (top). Pin A3 (PORTC bit 3) bitmask = 0b00001000 = 8 = 0x08
+        "ldi r21, 0x08 \n\t"
+        "eor r19, r21 \n\t"
+
+        // Load new bitmask into PORTC.
+        "out PORTC, r19 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 2 (2nd from top). Pin A0 (PORTC bit 0) bitmask = 0b00000001 = 1 = 0x01
+        "ldi r21, 0x01 \n\t"
+        "eor r19, r21 \n\t"
+
+        // Load new bitmask into PORTC.
+        "out PORTC, r19 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 1 (2nd from bottom). Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 2 = 0x02
+        "ldi r21, 0x02 \n\t"
+        "eor r18, r21 \n\t"
+
+        // Load new bitmask into PORTD.
+        "out PORTD, r18 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 0 (bottom). Pin D0 (PORTD bit 0) bitmask = 0b00000001 = 1 = 0x01
+        "ldi r21, 0x01 \n\t"
+        "eor r18, r21 \n\t"
+
+        // Load new bitmask into PORTD.
+        "out PORTD, r18 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Decrement the loop timer.
+        "dec r20 \n\t"
+
+        // Branch back to beginning of layer up loop if zero flag isn't set.
+        "brne layerTopDownLoop \n\t"
+
+      // Decrement main loop timer.
+      "dec r17 \n\t"
+
+      // Branch to the beginning of the main loop if the zero flag isn't set.
+      "brne startLayerLoop \n\t"
+
+    // Pop registers used in this subroutine before returning to the caller.
+    "pop r21 \n\t"
+    "pop r20 \n\t"
+    "pop r19 \n\t"
+    "pop r18 \n\t"
+    "pop r17 \n\t"
+    "pop r16 \n\t"
+
+    // Return to caller.
+    "ret \n\t"
+  /**************************************
+  **  TOGGLE LAYERS UP AND DOWN (END)  **
+  **************************************/
 
   /************************************
   **  FLICKER ON SUBROUTINE (START)  **
