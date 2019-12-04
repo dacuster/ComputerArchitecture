@@ -100,9 +100,11 @@ asm volatile
 
     // Turn all the columns off.
     //"call turnColumnsOff \n\t"
+    
+    "call layerDownAndUp \n\t"
 
     // Layer accordion effect.
-    //"call layerAccordion \n\t"
+    "call layerAccordion \n\t"
 
 
 
@@ -114,13 +116,12 @@ asm volatile
 
 
 
-    "call layerDownAndUp \n\t"
     
     // Delay for 1000 milliseconds.
-    "ldi XL, lo8(0x03E8) \n\t"
-    "ldi XH, hi8(0x03E8) \n\t"
+    //"ldi XL, lo8(0x03E8) \n\t"
+    //"ldi XH, hi8(0x03E8) \n\t"
 
-    "call delay \n\t"
+    //"call delay \n\t"
 
     // Turn everything on.
     //"call turnEverythingOn \n\t"
@@ -359,7 +360,7 @@ asm volatile
     "push r21 \n\t"
 
     // Load delay time for each loop. (75ms = 0x4B)
-    "ldi r16, 0x4B \n\t"
+    //"ldi r16, 0x4B \n\t"
 
     // Turn all the leds off.
     "call turnEverythingOff \n\t"
@@ -367,8 +368,8 @@ asm volatile
     // Turn all the columns off so the LEDs can be turned on.
     "call turnColumnsOff \n\t"
 
-    // Load the main loop counter. (5 loops)
-    "ldi r17, 0x05 \n\t"
+    // Load the main loop counter. (1 loop) Increase for longer effect
+    "ldi r17, 0x01 \n\t"
 
     // Load the current PORTD bitmask.
     "in r18, PORTD \n\t"
@@ -379,68 +380,8 @@ asm volatile
     // Start the main loop.
     "startToggleLayerLoop: \n\t"
 
-      // Load the bottom up loop counter. (2 loops)
-      "ldi r20, 0x02 \n\t"
-
-      // Toggle layers starting at bottom.
-      "layerToggleBottomUpLoop: \n\t"
-
-        // Toggle layer 0 (bottom). Pin D0 (PORTD bit 0) bitmask = 0b00000001 = 1 = 0x01
-        "ldi r21, 0x01 \n\t"
-        "eor r18, r21 \n\t"
-
-        // Load new bitmask into PORTD.
-        "out PORTD, r18 \n\t"
-
-        // Load the layer delay time into the X register and delay.
-        "ldi XL, lo8(0x4B) \n\t"
-        "ldi XH, hi8(0x4B) \n\t"
-        "call delay \n\t"
-
-        // Toggle layer 1 (2nd from bottom). Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 2 = 0x02
-        "ldi r21, 0x02 \n\t"
-        "eor r18, r21 \n\t"
-
-        // Load new bitmask into PORTD.
-        "out PORTD, r18 \n\t"
-
-        // Load the layer delay time into the X register and delay.
-        "ldi XL, lo8(0x4B) \n\t"
-        "ldi XH, hi8(0x4B) \n\t"
-        "call delay \n\t"
-
-        // Toggle layer 2 (2nd from top). Pin A0 (PORTC bit 0) bitmask = 0b00000001 = 1 = 0x01
-        "ldi r21, 0x01 \n\t"
-        "eor r19, r21 \n\t"
-
-        // Load new bitmask into PORTC.
-        "out PORTC, r19 \n\t"
-
-        // Load the layer delay time into the X register and delay.
-        "ldi XL, lo8(0x4B) \n\t"
-        "ldi XH, hi8(0x4B) \n\t"
-        "call delay \n\t"
-
-        // Toggle layer 3 (top). Pin A3 (PORTC bit 3) bitmask = 0b00001000 = 8 = 0x08
-        "ldi r21, 0x08 \n\t"
-        "eor r19, r21 \n\t"
-
-        // Load new bitmask into PORTC.
-        "out PORTC, r19 \n\t"
-
-        // Load the layer delay time into the X register and delay.
-        "ldi XL, lo8(0x4B) \n\t"
-        "ldi XH, hi8(0x4B) \n\t"
-        "call delay \n\t"
-
-        // Decrement the loop timer.
-        "dec r20 \n\t"
-
-        // Branch back to beginning of layer up loop if zero flag isn't set.
-        "brne layerToggleBottomUpLoop \n\t"
-
       // Load the top down loop counter. (2 loops)
-      "ldi r20, 0x02 \n\t"
+      //"ldi r20, 0x02 \n\t"
 
       // Toggle layers starting at top.
       "layerToggleTopDownLoop: \n\t"
@@ -494,10 +435,70 @@ asm volatile
         "call delay \n\t"
 
         // Decrement the loop timer.
-        "dec r20 \n\t"
+        //"dec r20 \n\t"
 
         // Branch back to beginning of layer up loop if zero flag isn't set.
-        "brne layerToggleTopDownLoop \n\t"
+        //"brne layerToggleTopDownLoop \n\t"
+
+      // Load the bottom up loop counter. (2 loops)
+      //"ldi r20, 0x02 \n\t"
+
+      // Toggle layers starting at bottom.
+      "layerToggleBottomUpLoop: \n\t"
+
+        // Toggle layer 0 (bottom). Pin D0 (PORTD bit 0) bitmask = 0b00000001 = 1 = 0x01
+        "ldi r21, 0x01 \n\t"
+        "eor r18, r21 \n\t"
+
+        // Load new bitmask into PORTD.
+        "out PORTD, r18 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 1 (2nd from bottom). Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 2 = 0x02
+        "ldi r21, 0x02 \n\t"
+        "eor r18, r21 \n\t"
+
+        // Load new bitmask into PORTD.
+        "out PORTD, r18 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 2 (2nd from top). Pin A0 (PORTC bit 0) bitmask = 0b00000001 = 1 = 0x01
+        "ldi r21, 0x01 \n\t"
+        "eor r19, r21 \n\t"
+
+        // Load new bitmask into PORTC.
+        "out PORTC, r19 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Toggle layer 3 (top). Pin A3 (PORTC bit 3) bitmask = 0b00001000 = 8 = 0x08
+        "ldi r21, 0x08 \n\t"
+        "eor r19, r21 \n\t"
+
+        // Load new bitmask into PORTC.
+        "out PORTC, r19 \n\t"
+
+        // Load the layer delay time into the X register and delay.
+        "ldi XL, lo8(0x4B) \n\t"
+        "ldi XH, hi8(0x4B) \n\t"
+        "call delay \n\t"
+
+        // Decrement the loop timer.
+        //"dec r20 \n\t"
+
+        // Branch back to beginning of layer up loop if zero flag isn't set.
+        //"brne layerToggleBottomUpLoop \n\t"
 
       // Decrement main loop timer.
       "dec r17 \n\t"
@@ -532,9 +533,9 @@ asm volatile
     "push r19 \n\t"
     "push r20 \n\t"
     "push r21 \n\t"
-    "push r0  \n\t"
-    "push r1  \n\t"
-    "push r2  \n\t"
+    "push r22 \n\t"
+    "push r23 \n\t"
+    "push r24 \n\t"
 
     // Load delay time for each loop. (75ms = 0x4B)
     "ldi r16, 0x4B \n\t"
@@ -555,9 +556,9 @@ asm volatile
     "in r19, PORTD \n\t"
 
     // Load loop counters to go back up the cube later.
-    "mov r0, 0x03 \n\t"
-    "mov r1, 0x03 \n\t"
-    "mov r2, 0x03 \n\t"
+    "ldi r22, 0x03 \n\t"
+    "ldi r23, 0x03 \n\t"
+    "ldi r24, 0x03 \n\t"
 
     // Start the main loop.
     "startDownAndUpLayerLoop: \n\t"
@@ -588,14 +589,14 @@ asm volatile
           "breq startSecondLayerToggle \n\t"
 
           // Decrement counter for back up loop later.
-          "dec r0 \n\t"
+          "dec r22 \n\t"
 
           // If zero flag is set then we just looped back up.
           "breq endOfAccordion \n\t"
 
           // Load the layer delay time into the X register and delay.
-          "ldi XL, lo8(0x4B) \n\t"
-          "ldi XH, hi8(0x4B) \n\t"
+          "ldi XL, lo8(0x96) \n\t"
+          "ldi XH, hi8(0x96) \n\t"
           "call delay \n\t"
 
           // Go back and toggle layer again.
@@ -627,10 +628,10 @@ asm volatile
           "breq startThirdLayerToggle \n\t"
 
           // Decrement counter for back up loop later.
-          "dec r1 \n\t"
+          "dec r23 \n\t"
 
           // If zero flag is set then we just looped back up.
-          "breq goToTopLayer \n\t"
+          "breq topLayerToggle \n\t"
 
           // Load the layer delay time into the X register and delay.
           "ldi XL, lo8(0x4B) \n\t"
@@ -649,8 +650,8 @@ asm volatile
         // Third layer toggle.
         "thirdLayerToggle: \n\t"
 
-          // Load new bitmask for third layer. Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 3 = 0x03
-          "ldi r21, 0x03 \n\t"
+          // Load new bitmask for third layer. Pin D1 (PORTD bit 1) bitmask = 0b00000010 = 2 = 0x02
+          "ldi r21, 0x02 \n\t"
 
           // Toggle the third layer. 
           "eor r19, r21 \n\t"
@@ -666,10 +667,10 @@ asm volatile
           "breq startBottomLayerToggle \n\t"
 
           // Decrement counter for back up loop later.
-          "dec r2 \n\t"
+          "dec r24 \n\t"
 
           // If zero flag is set then we just looped back up.
-          "breq goToSecondLayer \n\t"
+          "breq secondLayerToggle \n\t"
 
           // Load the layer delay time into the X register and delay.
           "ldi XL, lo8(0x4B) \n\t"
@@ -700,37 +701,25 @@ asm volatile
           // Decrement loop counter.
           "dec r20 \n\t"
 
-          // Go back and toggle layer again if zero flag isn't set.
-          "breq bottomLayerToggle \n\t"
+          // Start the reverse process of the toggle back up the cube.
+          "breq startReverseLayer \n\t"
 
           // Load the layer delay time into the X register and delay.
           "ldi XL, lo8(0x96) \n\t"
           "ldi XH, hi8(0x96) \n\t"
           "call delay \n\t"
 
-      // Load a new loop counter to toggle the layer.
-      "ldi r20, 0x03 \n\t"
+          // Go back and toggle layer again if zero flag isn't set.
+          "jmp bottomLayerToggle \n\t"
+
+      // Start going back up the cube.
+      "startReverseLayer: \n\t"
+
+      // Load a new loop counter more than all the layers so the loop gets skipped.
+      "ldi r20, 0x07 \n\t"
 
       // Jump back to toggle the third layer
       "jmp thirdLayerToggle \n\t"
-
-      // Sequence before toggling second layer again.
-      "goToSecondLayer: \n\t"
-
-      // Load a new loop counter to toggle the layer.
-      "ldi r20, 0x03 \n\t"
-
-      // Jump back to toggle second layer.
-      "jmp secondLayerToggle \n\t"
-
-      // Sequence before toggling second layer again.
-      "goToTopLayer: \n\t"
-
-      // Load a new loop counter to toggle the layer.
-      "ldi r20, 0x03 \n\t"
-
-      // Jump back to toggle top layer.
-      "jmp topLayerToggle \n\t"
 
       // Label to end the accordion effect.
       "endOfAccordion: \n\t"
